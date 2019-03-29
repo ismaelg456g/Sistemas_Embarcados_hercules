@@ -1,2 +1,0 @@
-Nome: ola
-Idade: 29 anos
