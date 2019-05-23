@@ -17,31 +17,33 @@ int verificaCodigo(char *codigo);
 int main(){
   char codigo[10][100];
   char codigoReal[10][100];
-  int i=0, j=0;
-  char aux;
+  int sent=1;
 
-  // signal(SIGALRM, mataDsreader);
-  // scanner=fork();
-  //
-  // if(scanner==0){
-  //   system("./dsreader > cadastro.txt");
-  // }else{
-  //   alarm(15);
-  //   pause();
-  // }
+  signal(SIGALRM, mataDsreader);
+  scanner=fork();
 
-  le_strings(codigo[0]);
-  extraiCodigo(codigo[0], codigoReal[0]);
-  validaCodigo(codigoReal[0]);
-  printf("%d\n", verificaCodigo(codigoReal[0]));
+  if(scanner==0){
+    system("./dsreader > cadastro.txt");
+  }else{
+    while(sent){
+    puts("Posicione o código de barras/QR CODE");
+    alarm(15);
+    pause();
+    le_strings(codigo[0]);
+    extraiCodigo(codigo[0], codigoReal[0]);
+    sent=validaCodigo(codigoReal[0]);
+    if(sent)
+      puts("\n\n\n\nCódigo não reconhecido!!!, tente novamente...");
+    }
 
-
-  for(i=0; i<10;i++){
-    printf("%s\n", codigo[i]);
+    if(verificaCodigo(codigoReal[0])){
+      puts("Porta fechada");
+    }else{
+      puts("Porta aberta");
+    }
   }
-  for(i=0; i<10; i++){
-    printf("\n%s", codigoReal[i]);
-  }
+
+
 
   return 0;
 }
