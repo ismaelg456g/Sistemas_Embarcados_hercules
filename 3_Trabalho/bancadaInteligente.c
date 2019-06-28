@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <signal.h>
 #include <string.h>
 
@@ -20,26 +21,27 @@ int main(){
   int sent=1;
 
   signal(SIGALRM, mataDsreader);
-  scanner=fork();
+  while(sent){
+    scanner=fork();
 
-  if(scanner==0){
-    system("./dsreader > cadastro.txt");
-  }else{
-    while(sent){
-    puts("Posicione o código de barras/QR CODE");
-    alarm(15);
-    pause();
-    le_strings(codigo[0]);
-    extraiCodigo(codigo[0], codigoReal[0]);
-    sent=validaCodigo(codigoReal[0]);
-    if(sent)
-      puts("\n\n\n\nCódigo não reconhecido!!!, tente novamente...");
-    }
-
-    if(verificaCodigo(codigoReal[0])){
-      puts("Porta fechada");
+    if(scanner==0){
+      execl("./dsreader", "dsreader", NULL);
     }else{
-      puts("Porta aberta");
+      puts("Posicione o código de barras/QR CODE");
+      alarm(5);
+      pause();
+      le_strings(codigo[0]);
+      extraiCodigo(codigo[0], codigoReal[0]);
+      sent=validaCodigo(codigoReal[0]);
+      if(sent)
+        puts("\n\n\n\nCódigo não reconhecido!!!, tente novamente...");
+      else{
+        if(verificaCodigo(codigoReal[0])){
+          puts("Porta fechada");
+        }else{
+          puts("Porta aberta");
+        }
+      }
     }
   }
 
@@ -52,6 +54,7 @@ int main(){
 // Retorno:
 void mataDsreader(){
   kill(scanner, SIGINT);
+  waitpid(scanner, NULL, 0);
 }
 
 
