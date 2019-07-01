@@ -14,20 +14,33 @@ void le_strings(char *matriz_string);
 void extraiCodigo(char *str, char *codigo);
 int validaCodigo(char *codigos);
 int verificaCodigo(char *codigo);
+int getPIDdsreader();
+
+// void fechaPrograma(){
+//   fclose(stdout);
+//   fprintf(stderr, "oi\n");
+//   exit(0);
+// }
 
 int main(){
   char codigo[10][100];
   char codigoReal[10][100];
   int sent=1;
+  FILE *arq;
+  char abacate[90];
+
 
   signal(SIGALRM, mataDsreader);
+  
   while(sent){
     scanner=fork();
 
     if(scanner==0){
-      execl("./dsreader", "dsreader", NULL);
+      execl("/bin/sh","sh", "-c", "./dsreader > cadastro.txt", NULL);
+      fprintf(stderr, "Erro ao executar o dsreader...");
+      exit(-1);
     }else{
-      puts("Posicione o código de barras/QR CODE");
+      printf("Posicione o código de barras/QR CODE\n");
       alarm(5);
       pause();
       le_strings(codigo[0]);
@@ -53,8 +66,15 @@ int main(){
 // Parâmetro:
 // Retorno:
 void mataDsreader(){
-  kill(scanner, SIGINT);
+  pid_t pidDsreader;
+
+  system("ls -la");
+  system("ps -a | grep dsreader > tmp.txt");
+  pidDsreader=getPIDdsreader();
+  kill(pidDsreader, SIGINT);
+  // kill(scanner, SIGKILL);
   waitpid(scanner, NULL, 0);
+  system("rm tmp.txt");
 }
 
 
@@ -133,4 +153,30 @@ int verificaCodigo(char *codigo){
   fclose(dados);
 
   return resultado;
+}
+
+int getPIDdsreader(){
+  FILE *arq;
+  char pidString[10];
+  char aux='0';
+  int i=0;
+  pid_t pid;
+
+  arq=fopen("tmp.txt", "r");
+  if(arq==NULL){
+    fprintf(stderr, "Erro ao abrir tmp.txt");
+    exit(-1);
+  }
+  if(fgetc(arq)==' '){
+    while(aux!=' ' && !feof(arq)){
+      aux=fgetc(arq);
+      pidString[i]=aux;
+      i++;
+    }
+    pidString[i-1]=0;
+  }
+  pid=atoi(pidString);
+  fclose(arq);
+
+  return pid;
 }
